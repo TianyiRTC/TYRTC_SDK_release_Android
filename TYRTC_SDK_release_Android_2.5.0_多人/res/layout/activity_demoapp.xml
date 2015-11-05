@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:versionCode="1"
+    android:versionName="1.0.1" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                android:id="@+id/TextView1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="status:" />
+
+            <EditText
+                android:id="@+id/ed_status"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:ems="10" >
+
+                <requestFocus />
+            </EditText>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/bt_acc"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onBtnAcc"
+                android:text="帐号" />
+
+            <EditText
+                android:id="@+id/ed_user"
+                android:layout_width="138dp"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:text="" />
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+
+            <EditText
+                android:id="@+id/ed_local"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:text="192.168.109.44"
+                android:visibility="gone" />
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/bt_remote"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onBtnRemote"
+                android:text="被叫" />
+
+            <Button
+                android:id="@+id/bt_calltype"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onBtnCallType"
+                android:text="A+V" />
+
+            <EditText
+                android:id="@+id/ed_remoteuri"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:text="" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/bt_init"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onBtnInit"
+                android:text="Init" />
+
+            <Button
+                android:id="@+id/bt_register"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onBtnLogin"
+                android:text="Login" />
+
+            <Button
+                android:id="@+id/bt_Call"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onBtnCall"
+                android:text="Call" />
+
+            <Button
+                android:id="@+id/bt_hangup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onBtnHangup"
+                android:text="Hangup" />
+
+            <Spinner
+                android:id="@+id/spinner_codec"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/ll_video"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+
+            <LinearLayout
+                android:id="@+id/ll_local"
+                android:layout_width="144dp"
+                android:layout_height="176dp" />
+
+            <LinearLayout
+                android:id="@+id/ll_remote"
+                android:layout_width="144dp"
+                android:layout_height="176dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/bt_test"
+                android:layout_width="fill_parent"
+                android:layout_height="0dip"
+                android:text="" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="会议类型:" />
+
+            <Spinner
+                android:id="@+id/spinner_grptype"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/bt_grpcall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onBtnGrpCall_create"
+                android:text="发起多人会话" />
+
+            <Button
+                android:id="@+id/bt_grpcall_accept"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onBtnGrpCall_Accept"
+                android:text="接受邀请" />
+
+            <Button
+                android:id="@+id/bt_grpcall_Hangup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onBtnGrpCall_Hangup"
+                android:text="拒绝/退出" />
+
+            <Button
+                android:id="@+id/bt_grpcall_Join"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onBtnGrpCall_join"
+                android:text="加入" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/bt_grpcall_GetMemberList"
+                android:layout_width="82dp"
+                android:layout_height="match_parent"
+                android:onClick="onBtnGrpCall_GMemList"
+                android:text="获取成员" />
+
+            <Button
+                android:id="@+id/bt_grpcall_InvMemberList"
+                android:layout_width="82dp"
+                android:layout_height="match_parent"
+                android:onClick="onBtnGrpCall_InvitedMemberList"
+                android:text="邀请成员" />
+
+            <Button
+                android:id="@+id/bt_grpcall_KickMemberList"
+                android:layout_width="74dp"
+                android:layout_height="match_parent"
+                android:onClick="onBtnGrpCall_kickMemberList"
+                android:text="踢出" />
+
+            <Button
+                android:id="@+id/bt_grpcall_Close"
+                android:layout_width="52dp"
+                android:layout_height="match_parent"
+                android:layout_weight="0.30"
+                android:onClick="onBtnGrpCall_Close"
+                android:text="关闭多人会话" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/Button01"
+                android:layout_width="74dp"
+                android:layout_height="wrap_content"
+                android:onClick="onBtnGrpCall_MuteFl"
+                android:text="禁言禁听" />
+
+            <Button
+                android:id="@+id/Button02"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onBtnGrpCall_MuteUnFl"
+                android:text="禁言不禁听" />
+
+            <Button
+                android:id="@+id/Button03"
+                android:layout_width="74dp"
+                android:layout_height="wrap_content"
+                android:onClick="onBtnGrpCall_FlUnMute"
+                android:text="禁听不禁言" />
+
+            <Button
+                android:id="@+id/Button04"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onBtnGrpCall_UnMuteUnFl"
+                android:text="解禁言禁听" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/bt_grpcall_QList"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:onClick="onBtnGrpCall_QList"
+                android:text="查询会议" />
+
+            <TextView
+                android:id="@+id/tv_version"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="" />
+        </LinearLayout>
+    </LinearLayout>
+
+</ScrollView>

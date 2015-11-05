@@ -1,0 +1,815 @@
+Index: res/layout/activity_demoapp.xml
+===================================================================
+--- res/layout/activity_demoapp.xml	(revision 816)
++++ res/layout/activity_demoapp.xml	(working copy)
+@@ -48,6 +48,12 @@
+                 android:layout_height="wrap_content"
+                 android:ems="10"
+                 android:text="" />
++
++            <Spinner
++                android:id="@+id/spinner_plt"
++                android:layout_width="match_parent"
++                android:layout_height="wrap_content" />
++
+         </LinearLayout>
+ 
+         <RelativeLayout
+@@ -121,6 +127,11 @@
+                 android:layout_height="wrap_content"
+                 android:onClick="onBtnHangup"
+                 android:text="Hangup" />
++
++            <Spinner
++                android:id="@+id/spinner_codec"
++                android:layout_width="match_parent"
++                android:layout_height="wrap_content" />
+         </LinearLayout>
+ 
+         <LinearLayout
+@@ -240,7 +251,7 @@
+                 android:id="@+id/Button01"
+                 android:layout_width="74dp"
+                 android:layout_height="wrap_content"
+-                android:onClick="onBtnGrpV_MuteFl"
++                android:onClick="onBtnGrpCall_MuteFl"
+                 android:text="禁言禁听" />
+ 
+             <Button
+@@ -247,7 +258,7 @@
+                 android:id="@+id/Button02"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+-                android:onClick="onBtnGrpV_MuteUnFl"
++                android:onClick="onBtnGrpCall_MuteUnFl"
+                 android:text="禁言不禁听" />
+ 
+             <Button
+@@ -254,7 +265,7 @@
+                 android:id="@+id/Button03"
+                 android:layout_width="74dp"
+                 android:layout_height="wrap_content"
+-                android:onClick="onBtnGrpV_FlUnMute"
++                android:onClick="onBtnGrpCall_FlUnMute"
+                 android:text="禁听不禁言" />
+ 
+             <Button
+@@ -261,7 +272,7 @@
+                 android:id="@+id/Button04"
+                 android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+-                android:onClick="onBtnGrpV_UnMuteUnFl"
++                android:onClick="onBtnGrpCall_UnMuteUnFl"
+                 android:text="解禁言禁听" />
+ 
+         </LinearLayout>
+@@ -270,6 +281,13 @@
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content" >
+ 
++            <Button
++                android:id="@+id/bt_grpcall_QList"
++                android:layout_width="wrap_content"
++                android:layout_height="wrap_content"
++                android:onClick="onBtnGrpCall_QList"
++                android:text="查询会议" />
++
+             <TextView
+                 android:id="@+id/tv_version"
+                 android:layout_width="wrap_content"
+Index: res/values/arrays.xml
+===================================================================
+--- res/values/arrays.xml	(revision 816)
++++ res/values/arrays.xml	(working copy)
+@@ -1,6 +1,17 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+ 
++    <string-array name="plt">
++        <item >test1</item>
++        <item >test2</item>
++        <item >cloud1</item>
++        <item >cloud2</item>
++        <item >cloud2(s)</item>
++    </string-array>
++    <string-array name="codec">
++        <item >VP8</item>
++        <item >H264</item>
++    </string-array>
+     <string-array name="grptype">
+         <item>0:多人语音会话群聊</item>
+         <item>1:多人语音会话对讲</item>
+Index: src/com/rtc/sdk/DemoApp.java
+===================================================================
+--- src/com/rtc/sdk/DemoApp.java	(revision 816)
++++ src/com/rtc/sdk/DemoApp.java	(working copy)
+@@ -25,7 +25,6 @@
+ import jni.http.HttpManager;
+ import jni.http.HttpResult;
+ import jni.http.RtcHttpClient;
+-import jni.media.RtcMediaJava;
+ import jni.util.Utils;
+ import android.app.Activity;
+ import android.app.AlertDialog;
+@@ -81,9 +80,23 @@
+     public static final int MSG_GRP_BEI_ACCEPT = 10005;
+     
+     /** The Constant MSG_GRP_OPT_GETMEMBERLIST. */
+-    public static final int MSG_GRP_OPT_GETMEMBERLIST=1006;
++    public static final int MSG_GRP_OPT_GETMEMBERLIST=10006;
+ 
++    /** The Constant MSG_GRP_OPT_GETFROUPLIST. */
++    public static final int MSG_GRP_OPT_GETFROUPLIST=10007;
+ 
++    /** The sp_grptype. */
++    private Spinner sp_plt;
++    
++    /** The adapter_grptype. */
++    private ArrayAdapter adapter_plt;
++    
++    /** The sp_codec. */
++    private Spinner sp_codec;
++    
++    /** The adapter_codec. */
++    private ArrayAdapter adapter_codec;
++    
+     /** The btngrpv_hangup. */
+     private Button btngrp_accept,btngrp_hangup;
+     
+@@ -147,10 +160,15 @@
+         setContentView(R.layout.activity_demoapp);
+         btngrp_accept = (Button)findViewById(R.id.bt_grpcall_accept);
+         btngrp_hangup = (Button)findViewById(R.id.bt_grpcall_Hangup);
++        layoutlocal = (LinearLayout) findViewById(R.id.ll_local);
++        layoutremote = (LinearLayout) findViewById(R.id.ll_remote);
++
+         tv_version = (TextView)findViewById(R.id.tv_version);
+         btngrp_accept.setVisibility(View.INVISIBLE);
+         btngrp_hangup.setVisibility(View.INVISIBLE);
+-        tv_version.setText(RtcConst.sdkVersion+"; VP8; "+APP_ID);//getAppVersionName()
++        tv_version.setText(RtcConst.sdkVersion+"; appid: "+APP_ID);//getAppVersionName()
++        initSpinnerPlt();
++        initSpinnerCodec();
+         initSpinnerGrpType();
+         updateEditInfo(0xffffffff);
+     }
+@@ -252,12 +270,71 @@
+     LinearLayout layoutremote;
+ 
+     /**
++     * Inits the spinner plt.
++     */
++    private void initSpinnerPlt() {
++        sp_plt = (Spinner)findViewById(R.id.spinner_plt);
++        //将可选内容与ArrayAdapter连接起来
++        adapter_plt = ArrayAdapter.createFromResource(this, R.array.plt, android.R.layout.simple_spinner_item);
++        //设置下拉列表的风格
++        adapter_plt.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
++        //设置下拉列表的风格
++        //将adapter2 添加到spinner中
++        sp_plt.setAdapter(adapter_plt);
++        //添加事件Spinner事件监听
++        sp_plt.setOnItemSelectedListener(new SpinnerXMLSelectedListener_plt());
++        grptype = 0;
++        //设置默认值
++        sp_plt.setVisibility(View.VISIBLE);
++    }
++    //使用XML形式操作
++    /**
++     * The Class SpinnerXMLSelectedListener_vformat.
++     */
++    class SpinnerXMLSelectedListener_plt implements OnItemSelectedListener{
++
++        /* (non-Javadoc)
++         * @see android.widget.AdapterView.OnItemSelectedListener#onItemSelected(android.widget.AdapterView, android.view.View, int, long)
++         */
++        public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2,
++                long arg3) {
++            switch(arg2) {
++                case 0:
++                    RtcConst.getServerDomain = "https://test1.chinartc.com:442";
++                    break;
++                case 1:
++                    RtcConst.getServerDomain = "https://test2.chinartc.com:442";
++                    break;
++                case 2:
++                    RtcConst.getServerDomain = "https://access.chinartc.com:442";
++                    break;
++                case 3:
++                    RtcConst.getServerDomain = "http://42.123.77.35:8090";
++                    break;
++                case 4:
++                    RtcConst.getServerDomain = "https://42.123.77.35:442";
++                    break;
++            }
++            Utils.PrintLog(5, LOGTAG,"选择平台:"+adapter_plt.getItem(arg2));
++        }
++        
++        /* (non-Javadoc)
++         * @see android.widget.AdapterView.OnItemSelectedListener#onNothingSelected(android.widget.AdapterView)
++         */
++        public void onNothingSelected(AdapterView<?> arg0) {
++
++        }
++    }
++    
++    /**
+      * Inits the video views.
+      */
+     void initVideoViews() {
+         if (mvLocal!=null) return;
+-        LinearLayout layoutlocal = (LinearLayout) findViewById(R.id.ll_local);
+-        mvLocal = RtcMediaJava.CreateLocalVideo(this);
++        if(mCall != null)
++            mvLocal = (SurfaceView)mCall.createVideoView(true, this, true);
++        else if(mGroupCall != null)
++            mvLocal = (SurfaceView)mGroupCall.createVideoView(true, this, true);
+         mvLocal.setVisibility(View.INVISIBLE);
+         layoutlocal.addView(mvLocal);
+         mvLocal.setKeepScreenOn(true);
+@@ -264,8 +341,10 @@
+         mvLocal.setZOrderMediaOverlay(true);
+         mvLocal.setZOrderOnTop(true);
+ 
+-        layoutremote = (LinearLayout) findViewById(R.id.ll_remote);
+-        mvRemote = RtcMediaJava.CreateRemoteVideo(this,true);
++        if(mCall != null)
++            mvRemote = (SurfaceView)mCall.createVideoView(false, this, true);
++        else if(mGroupCall != null)
++            mvRemote = (SurfaceView)mGroupCall.createVideoView(false, this, true);
+         mvRemote.setVisibility(View.INVISIBLE);
+         mvRemote.setKeepScreenOn(true);
+         mvRemote.setZOrderMediaOverlay(true);
+@@ -335,10 +414,10 @@
+     }
+ 
+     /** The s_call_type. */
+-    String[] s_call_type = new String[] {"Audio","Video","Audio+Video","RecvOnly","SendOnly"};
++    String[] s_call_type = new String[] {"Audio","Video","Audio+Video","RecvOnly","SendOnly","ARVS","ARVD","ASVR","ASVD","ADVR","ADVS"};
+     
+     /** The m ct. */
+-    int mCT = 3;
++    int mCT = RtcConst.CallType_A_V;
+     
+     /**
+      * On btn call type.
+@@ -355,7 +434,19 @@
+                     mCT = RtcConst.CallType_A_V_M;
+                 else if(arg1 == 4)
+                     mCT = RtcConst.CallType_A_V_L;
+-                String[] ctype = new String[] {"A","V","A+V","R","S"};
++                else if(arg1 == 5)
++                    mCT = RtcConst.CallType_A_R_V_S;
++                else if(arg1 == 6)
++                    mCT = RtcConst.CallType_A_R_V_D;
++                else if(arg1 == 7)
++                    mCT = RtcConst.CallType_A_S_V_R;
++                else if(arg1 == 8)
++                    mCT = RtcConst.CallType_A_S_V_D;
++                else if(arg1 == 9)
++                    mCT = RtcConst.CallType_A_D_V_R;
++                else if(arg1 == 10)
++                    mCT = RtcConst.CallType_A_D_V_S;
++                String[] ctype = new String[] {"A","V","A+V","R","S","ARVS","ARVD","ASVR","ASVD","ADVR","ADVS"};
+                 bt.setText(ctype[arg1]);
+             }
+         }).show();
+@@ -371,7 +462,6 @@
+      * @param viw the viw
+      */
+     public void onBtnInit(View viw) {
+-        initVideoViews();
+         mInit = !mInit;
+         Utils.PrintLog(5, LOGTAG, "onBtnInit mInit :"+mInit);
+ 
+@@ -478,7 +568,20 @@
+             Utils.PrintLog(5, LOGTAG, "ChangeNetWork");
+             //自动重连接  
+         }
++
+         @Override
++        public void onSendIm(int nStatus) {
++            if(nStatus == RtcConst.CallCode_Success)
++                Utils.PrintLog(5, LOGTAG, "发送IM成功");
++            else
++                Utils.PrintLog(5, LOGTAG, "发送IM失败:"+nStatus);
++        }
++        @Override
++        public void onReceiveIm(String from,String mime,String content) {
++            Utils.PrintLog(5, LOGTAG, "onReceiveIm:"+from+mime+content);
++        }
++
++        @Override
+         public void onNewCall(Connection call) {
+ 
+             Utils.PrintLog(5,"DeviceListener","onNewCall,call="+call.info());
+@@ -507,13 +610,12 @@
+     };
+ 
+     /**
+-     * Opt_get token.
++     * 终端直接从rtc平台获取token，应用产品需要通过自己的服务器来获取，rtc平台接口请参考开发文档<2.5>章节.
+      */
+     private  void  opt_getToken() {
+         RtcConst.UEAPPID_Current = RtcConst.UEAPPID_Self;//账号体系，包括私有、微博、QQ等，必须在获取token之前确定。
+         JSONObject jsonobj = HttpManager.getInstance().CreateTokenJson(0,getEditText(R.id.ed_user),RtcHttpClient.grantedCapabiltyID,"");
+-        RtcHttpClient.InApplicationID=APP_ID;
+-        HttpResult  ret = HttpManager.getInstance().getCapabilityToken(jsonobj,APP_ID,APP_KEY);
++        HttpResult  ret = HttpManager.getInstance().getCapabilityToken(jsonobj, APP_ID, APP_KEY);
+         setStatusText("获取token:"+ret.getStatus()+" reason:"+ret.getErrorMsg());
+         Message msg = new Message();
+         msg.what = MSG_GETTOKEN;
+@@ -530,9 +632,9 @@
+                 System.out.println("Thread is running.");
+                 opt_getToken();
+             }
+-        }.start();  
++        }.start();
+ 
+-        //如果直接注册  
++        //如果直接注册
+     }
+     
+ 
+@@ -573,12 +675,12 @@
+         try {
+             JSONObject jargs = SdkSettings.defaultDeviceSetting();
+             jargs.put(RtcConst.kAccPwd,spwd);
+-            Utils.PrintLog(5, LOGTAG, "user:"+getEditText(R.id.ed_user) +"token:"+capabailitytoken);
++            Utils.PrintLog(5, LOGTAG, "user:"+getEditText(R.id.ed_user) +"token:"+spwd);
+             
+             //账号格式形如“账号体系-号码~应用id~终端类型”，以下主要设置账号内各部分内容，其中账号体系的值要在获取token之前确定，默认为私有账号
+-            jargs.put(RtcConst.kAccAppID,RtcHttpClient.InApplicationID);//应用id
++            jargs.put(RtcConst.kAccAppID,APP_ID);//应用id
+             //jargs.put(RtcConst.kAccName,"逍遥神龙");
+-            jargs.put(RtcConst.kAccUser,getEditText(R.id.ed_user)); //号码
++            jargs.put(RtcConst.kAccUser,sname); //号码
+             jargs.put(RtcConst.kAccType,RtcConst.UEType_Current);//终端类型
+             
+             mAcc = mClt.createDevice(jargs.toString(), mAListener); //注册
+@@ -621,6 +723,7 @@
+             mHandler.post(new Runnable() {
+                 @Override
+                 public void run() {
++                    initVideoViews();
+                     mCall.buildVideo(mvRemote);
+                     setVideoSurfaceVisibility(View.VISIBLE);
+                 }
+@@ -650,7 +753,7 @@
+             try {
+                 //;transport=tls
+                 String remoteuri = "";
+-                remoteuri = RtcRules.UserToRemoteUri_new(getEditText(R.id.ed_remoteuri), RtcHttpClient.InApplicationID,RtcConst.UEType_Any);
++                remoteuri = RtcRules.UserToRemoteUri_new(getEditText(R.id.ed_remoteuri), RtcConst.UEType_Any);
+ 
+                 JSONObject jinfo = new JSONObject();
+                 jinfo.put(RtcConst.kCallRemoteUri,remoteuri);
+@@ -658,6 +761,8 @@
+                 jinfo.put(RtcConst.kCallType,mCT);
+                 mCall = mAcc.connect(jinfo.toString(),mCListener);
+                 setBtnText(R.id.bt_Call,"Calling");
++                //IM test
++                //mAcc.sendIm(remoteuri, RtcConst.ImText, "聊天吧");
+             } catch (JSONException e) {
+                 e.printStackTrace();
+             }
+@@ -689,6 +794,47 @@
+         setStatusText("call hangup ");
+     }
+     
++    /**
++     * Inits the spinner codec.
++     */
++    private void initSpinnerCodec() {
++        sp_codec = (Spinner)findViewById(R.id.spinner_codec);
++        //将可选内容与ArrayAdapter连接起来
++        adapter_codec = ArrayAdapter.createFromResource(this, R.array.codec, android.R.layout.simple_spinner_item);
++        //设置下拉列表的风格
++        adapter_codec.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
++        //设置下拉列表的风格
++        //将adapter2 添加到spinner中
++        sp_codec.setAdapter(adapter_codec);
++        //添加事件Spinner事件监听
++        sp_codec.setOnItemSelectedListener(new SpinnerXMLSelectedListener_codec());
++        //设置默认值
++        sp_codec.setVisibility(View.VISIBLE);
++    }
++    //使用XML形式操作
++    /**
++     * The Class SpinnerXMLSelectedListener_vformat.
++     */
++    class SpinnerXMLSelectedListener_codec implements OnItemSelectedListener{
++
++        /* (non-Javadoc)
++         * @see android.widget.AdapterView.OnItemSelectedListener#onItemSelected(android.widget.AdapterView, android.view.View, int, long)
++         */
++        public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2,
++                long arg3) {
++            if(mClt != null)
++                mClt.setVideoCodec(arg2);
++            Utils.PrintLog(5, LOGTAG,"选择codec:"+adapter_codec.getItem(arg2));
++        }
++        
++        /* (non-Javadoc)
++         * @see android.widget.AdapterView.OnItemSelectedListener#onNothingSelected(android.widget.AdapterView)
++         */
++        public void onNothingSelected(AdapterView<?> arg0) {
++
++        }
++    }
++    
+     /* (non-Javadoc)
+      * @see android.app.Activity#onKeyDown(int, android.view.KeyEvent)
+      */
+@@ -742,6 +888,7 @@
+         }
+     }
+ 
++    ArrayList<String> groupList;
+     /** The UI handler. */
+     private Handler UIHandler = new Handler() {
+         @Override 
+@@ -794,6 +941,32 @@
+                     }
+                     break;
+                 }
++                case MSG_GRP_OPT_GETFROUPLIST:
++                    JSONArray jsonArr;
++                    JSONObject jsonrsp = (JSONObject)msg.obj;
++                    if(groupList != null)
++                        groupList.clear();
++                    else
++                        groupList = new ArrayList<String>();
++                    try {
++                        jsonArr = jsonrsp.getJSONArray(RtcConst.kGrpList);
++                        for (int i = 0; i < jsonArr.length(); i++) {
++                            JSONObject itemObject = jsonArr.getJSONObject(i);
++                            groupList.add(itemObject.getString(RtcConst.kcallId));
++                        }
++                        String[] groupArray = new String[groupList.size()];
++                        groupList.toArray(groupArray);
++                        new AlertDialog.Builder(DemoApp.this).setTitle("选择会议ID").setItems(groupArray, new DialogInterface.OnClickListener() {
++                            @Override
++                            public void onClick(DialogInterface arg0, int arg1) {
++                                m_grpid = groupList.get(arg1);
++                            }
++                        }).show();
++                    } catch (JSONException e) {
++                        // TODO Auto-generated catch block
++                        e.printStackTrace();
++                    }
++                    break;
+                 default:
+                     break;
+             }
+@@ -831,10 +1004,9 @@
+             mHandler.post(new Runnable() {
+                 @Override
+                 public void run() {
+-                    if(mGroupCall!=null) {
+-                        mGroupCall.buildVideo(mvRemote);
+-                        setVideoSurfaceVisibility(View.VISIBLE);
+-                    }
++                    initVideoViews();
++                    mGroupCall.buildVideo(mvRemote);
++                    setVideoSurfaceVisibility(View.VISIBLE);
+                 }
+             });
+         }
+@@ -1015,7 +1187,62 @@
+                 e.printStackTrace();
+             }
+         }
++        private void onResponse_grpQList(String parameters) {
++            try {
++                Utils.PrintLog(5, LOGTAG, "onResponse_grpQList:"+parameters);
++                if(parameters == null || parameters.equals(""))
++                    return;
++                JSONObject jsonrsp = new JSONObject(parameters);
++                if(jsonrsp.isNull("code")==false) {
++                    String code = jsonrsp.getString(RtcConst.kcode);
++                    String reason = jsonrsp.getString(RtcConst.kreason);
++                    Utils.PrintLog(5, LOGTAG, "onResponse_grpQList code:"+code+" reason:"+reason);
++                    if(code.equals("0")||code.equals("200")) {
++                        setStatusText("查询群组列表成功:"+parameters);
++                        Message msg = new Message();
++                        msg.what = MSG_GRP_OPT_GETFROUPLIST;
++                        msg.obj = jsonrsp;
++                        UIHandler.sendMessage(msg);
++                    }
++                    else {
++                        setStatusText("查询群组列表失败:"+code+" reason:"+reason);
++                    }
++                }
++            } catch (JSONException e) {
++                // TODO Auto-generated catch block
++                setStatusText("查询群组列表失败 JSONException:"+e.getMessage());
++                e.printStackTrace();
++            }
++        }
++        private void onResponse_grpMDisp(String parameters) {
++            try {
++                Utils.PrintLog(5, LOGTAG, "onResponse_grpMDisp:"+parameters);
++                if(parameters == null || parameters.equals(""))
++                    return;
++                JSONObject jsonrsp = new JSONObject(parameters);
++                if(jsonrsp.isNull("code")==false) {
++                    String code = jsonrsp.getString(RtcConst.kcode);
++                    String reason = jsonrsp.getString(RtcConst.kreason);
++                    Utils.PrintLog(5, LOGTAG, "onResponse_grpMDisp code:"+code+" reason:"+reason);
++                    if(code.equals("0")||code.equals("200")) {
++                        setStatusText("分屏设置成功:"+parameters);
++                        Message msg = new Message();
++                        msg.what = MSG_GRP_OPT_GETFROUPLIST;
++                        msg.obj = jsonrsp;
++                        UIHandler.sendMessage(msg);
++                    }
++                    else {
++                        setStatusText("分屏设置失败:"+code+" reason:"+reason);
++                    }
++                }
++            } catch (JSONException e) {
++                // TODO Auto-generated catch block
++                setStatusText("分屏设置失败 JSONException:"+e.getMessage());
++                e.printStackTrace();
++            }
++        }
+ 
++
+         @Override //用于处理会议结果返回的提示 
+         public void onResponse(int action, String parameters) {
+             // TODO Auto-generated method stub
+@@ -1043,6 +1270,9 @@
+                 case RtcConst.groupcall_opt_join:
+                     onResponse_grpJoin(parameters);
+                     break;
++                case RtcConst.groupcall_opt_qlist:
++                    onResponse_grpQList(parameters);
++                    break;
+             }
+             //
+         }
+@@ -1096,7 +1326,53 @@
+     };
+ 
+ 
++    private int grptype;
++    
+     /**
++     * Inits the spinner grp type.
++     */
++    private void initSpinnerGrpType() {
++        sp_grptype = (Spinner)findViewById(R.id.spinner_grptype);
++        //将可选内容与ArrayAdapter连接起来
++        adapter_grptype = ArrayAdapter.createFromResource(this, R.array.grptype, android.R.layout.simple_spinner_item);
++        //设置下拉列表的风格
++        adapter_grptype.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
++        //设置下拉列表的风格
++        //将adapter2 添加到spinner中
++        sp_grptype.setAdapter(adapter_grptype);
++        //添加事件Spinner事件监听
++        sp_grptype.setOnItemSelectedListener(new SpinnerXMLSelectedListener_vformat());
++        grptype = 0;
++        //设置默认值
++        sp_grptype.setVisibility(View.VISIBLE);
++    }
++    //使用XML形式操作
++    /**
++     * The Class SpinnerXMLSelectedListener_vformat.
++     */
++    class SpinnerXMLSelectedListener_vformat implements OnItemSelectedListener{
++
++        /* (non-Javadoc)
++         * @see android.widget.AdapterView.OnItemSelectedListener#onItemSelected(android.widget.AdapterView, android.view.View, int, long)
++         */
++        public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2,
++                long arg3) {
++            grptype = arg2;
++            if(arg2 == 3) grptype = 9;
++            else if(arg2>3 && arg2<7) grptype = arg2+16;
++            else if(arg2 == 7) grptype = 29;
++            Utils.PrintLog(5, LOGTAG,"选择会议类型:"+adapter_grptype.getItem(arg2)+"  grpselect:"+grptype);
++        }
++        
++        /* (non-Javadoc)
++         * @see android.widget.AdapterView.OnItemSelectedListener#onNothingSelected(android.widget.AdapterView)
++         */
++        public void onNothingSelected(AdapterView<?> arg0) {
++
++        }
++    }
++    
++    /**
+      * On btn grp call_create.
+      *
+      * @param view the view
+@@ -1116,6 +1392,7 @@
+             jsonObj.put(RtcConst.kgvcname, "grp组名");
+             jsonObj.put(RtcConst.kgvcpassword,"空的"); //opt
+             jsonObj.put(RtcConst.kgvcinvitedList, getEditText(R.id.ed_remoteuri));
++            //jsonObj.put("codec", 0);
+             Utils.PrintLog(5, LOGTAG, "createGroupCallJson:"+jsonObj.toString());
+ 
+         } catch (JSONException e) {
+@@ -1127,7 +1404,7 @@
+     }
+     
+     /**
+-     * On btn grp voice_ accept.
++     * On btn grp call_ accept.
+      *
+      * @param view the view
+      */
+@@ -1141,7 +1418,7 @@
+     }
+     
+     /**
+-     * On btn grp v_ hangup.
++     * On btn grp call_ hangup.
+      *
+      * @param view the view
+      */
+@@ -1159,7 +1436,7 @@
+     }
+     //获取成员列表
+     /**
+-     * On btn grp v_ g mem list.
++     * On btn grp call_ g mem list.
+      *
+      * @param view the view
+      */
+@@ -1175,7 +1452,7 @@
+     }
+     //邀请成员列表加入
+     /**
+-     * On btn grp v_ invited member list.
++     * On btn grp call_ invited member list.
+      *
+      * @param view the view
+      */
+@@ -1192,7 +1469,7 @@
+     }
+     
+     /**
+-     * On btn grp v_kick member list.
++     * On btn grp call_kick member list.
+      *
+      * @param view the view
+      */
+@@ -1211,7 +1488,7 @@
+ 
+     //关闭群组
+     /**
+-     * On btn grp v_ close.
++     * On btn grp call_ close.
+      *
+      * @param view the view
+      */
+@@ -1228,7 +1505,7 @@
+ 
+     //禁止群组成员发言/解除群组成员禁言(给麦/收回麦克)
+     /**
+-     * On mic management.
++     * On stream management.
+      *
+      * @param type the type
+      */
+@@ -1268,7 +1545,7 @@
+                 jsonArr.put(i, jsonObj1);
+             }
+             if(grpmgr.groupCall(RtcConst.groupcall_opt_strm,jsonArr.toString()) == -1)
+-        	setStatusText("没有会议，操作无效");
++                setStatusText("没有会议，操作无效");
+         } catch (JSONException e) {
+             // TODO Auto-generated catch block
+             e.printStackTrace();
+@@ -1276,27 +1553,27 @@
+     }
+ 
+     /**
+-     * On btn grp v_ mute.
++     * On btn grp call_ mute.
+      *
+      * @param view the view
+      */
+-    public void onBtnGrpV_MuteFl(View view) {
+-        Utils.PrintLog(5, LOGTAG, "onBtnGrpV_MuteFl:");
++    public void onBtnGrpCall_MuteFl(View view) {
++        Utils.PrintLog(5, LOGTAG, "onBtnGrpCall_MuteFl:");
+         OnStreamManagement(0);
+     }
+     
+     /**
+-     * On btn grp v_ un mute.
++     * On btn grp call_ un mute.
+      *
+      * @param view the view
+      */
+-    public void onBtnGrpV_MuteUnFl(View view) {
+-        Utils.PrintLog(5, LOGTAG, "onBtnGrpV_MuteUnFl:");
++    public void onBtnGrpCall_MuteUnFl(View view) {
++        Utils.PrintLog(5, LOGTAG, "onBtnGrpCall_MuteUnFl:");
+         OnStreamManagement(1);
+     }
+     
+-    public void onBtnGrpV_FlUnMute(View view) {
+-        Utils.PrintLog(5, LOGTAG, "onBtnGrpV_FlUnMute:");
++    public void onBtnGrpCall_FlUnMute(View view) {
++        Utils.PrintLog(5, LOGTAG, "onBtnGrpCall_FlUnMute:");
+         OnStreamManagement(2);
+     }
+     
+@@ -1303,8 +1580,8 @@
+     /**
+      * @param view the view
+      */
+-    public void onBtnGrpV_UnMuteUnFl(View view) {
+-        Utils.PrintLog(5, LOGTAG, "onBtnGrpV_UnMuteUnFl:");
++    public void onBtnGrpCall_UnMuteUnFl(View view) {
++        Utils.PrintLog(5, LOGTAG, "onBtnGrpCall_UnMuteUnFl:");
+         OnStreamManagement(3);
+     }
+     
+@@ -1336,51 +1613,44 @@
+         if(grpmgr.groupCall(RtcConst.groupcall_opt_join,jsonObj.toString()) == -1)
+             setStatusText("重复加入！");
+     }
+-    
+-    private int grptype;
+-    
++
+     /**
+-     * Inits the spinner grp type.
++     * On btn grp call_ q list.
++     *
++     * @param view the view
+      */
+-    private void initSpinnerGrpType() {
+-        sp_grptype = (Spinner)findViewById(R.id.spinner_grptype);
+-        //将可选内容与ArrayAdapter连接起来
+-        adapter_grptype = ArrayAdapter.createFromResource(this, R.array.grptype, android.R.layout.simple_spinner_item);
+-        //设置下拉列表的风格
+-        adapter_grptype.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+-        //设置下拉列表的风格
+-        //将adapter2 添加到spinner中
+-        sp_grptype.setAdapter(adapter_grptype);
+-        //添加事件Spinner事件监听
+-        sp_grptype.setOnItemSelectedListener(new SpinnerXMLSelectedListener_vformat());
+-        grptype = 0;
+-        //设置默认值
+-        sp_grptype.setVisibility(View.VISIBLE);
++    public void onBtnGrpCall_QList(View view) {
++        Utils.PrintLog(5, LOGTAG, "onBtnGrpCall_QList:");
++        if(mAcc == null)
++            return;
++        GroupMgr grpmgr = mAcc.getGroup();
++        if(grpmgr==null)
++            return;
++        grpmgr.groupCall(RtcConst.groupcall_opt_qlist, null);
+     }
+-    //使用XML形式操作
++
+     /**
+-     * The Class SpinnerXMLSelectedListener_vformat.
++     * On btn grp call_ q list.
++     *
++     * @param view the view
+      */
+-    class SpinnerXMLSelectedListener_vformat implements OnItemSelectedListener{
++    public void onBtnGrpCall_MDisp(View view) {
++        Utils.PrintLog(5, LOGTAG, "onBtnGrpCall_MDisp:");
++        if(mAcc == null)
++            return;
++        GroupMgr grpmgr = mAcc.getGroup();
++        if(grpmgr==null)
++            return;
++        JSONObject jsonObj = new JSONObject();
++        try {
++            jsonObj.put("screenSplit", 5);
++            //jsonObj.put("memberList", getEditText(R.id.ed_remoteuri));
++            //jsonObj.put("LV", 0);
+ 
+-        /* (non-Javadoc)
+-         * @see android.widget.AdapterView.OnItemSelectedListener#onItemSelected(android.widget.AdapterView, android.view.View, int, long)
+-         */
+-        public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2,
+-                long arg3) {
+-            grptype = arg2;
+-            if(arg2 == 3) grptype = 9;
+-            else if(arg2>3 && arg2<7) grptype = arg2+16;
+-            else if(arg2 == 7) grptype = 29;
+-            Utils.PrintLog(5, LOGTAG,"选择会议类型:"+adapter_grptype.getItem(arg2)+"  grpselect:"+grptype);
++        } catch (JSONException e) {
++            // TODO Auto-generated catch block
++            e.printStackTrace();
+         }
+-        
+-        /* (non-Javadoc)
+-         * @see android.widget.AdapterView.OnItemSelectedListener#onNothingSelected(android.widget.AdapterView)
+-         */
+-        public void onNothingSelected(AdapterView<?> arg0) {
+-
+-        }
+     }
+ 
+     /**
