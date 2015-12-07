@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="grptype">
+        <item>0:多人语音会话群聊</item>
+        <item>1:多人语音会话对讲</item>
+        <item>2:多人两方语音</item>
+        <item>9:多人语音微直播</item>
+        <item>20:多人视频群聊</item>
+        <item>21:多人视频会话对讲</item>
+        <item>22:多人两方视频</item>
+        <item>29:多人视频微直播</item>
+    </string-array>
+
+</resources>
