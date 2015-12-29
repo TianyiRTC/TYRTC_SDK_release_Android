@@ -1,0 +1,1032 @@
+Index: res/layout/activity_demoapp.xml
+===================================================================
+--- res/layout/activity_demoapp.xml	(revision 816)
++++ res/layout/activity_demoapp.xml	(working copy)
+@@ -153,49 +153,11 @@
+         <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content" >
+-
+-            <TextView
+-                android:layout_width="wrap_content"
+-                android:layout_height="wrap_content"
+-                android:text="会议类型:" />
+-
+-            <Spinner
+-                android:id="@+id/spinner_grptype"
+-                android:layout_width="match_parent"
+-                android:layout_height="wrap_content" />
+         </LinearLayout>
+ 
+         <LinearLayout
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content" >
+-
+-            <Button
+-                android:id="@+id/bt_grpcall"
+-                android:layout_width="wrap_content"
+-                android:layout_height="wrap_content"
+-                android:onClick="onBtnGrpCall_create"
+-                android:text="发起多人会话" />
+-
+-            <Button
+-                android:id="@+id/bt_grpcall_accept"
+-                android:layout_width="wrap_content"
+-                android:layout_height="wrap_content"
+-                android:onClick="onBtnGrpCall_Accept"
+-                android:text="接受邀请" />
+-
+-            <Button
+-                android:id="@+id/bt_grpcall_Hangup"
+-                android:layout_width="wrap_content"
+-                android:layout_height="wrap_content"
+-                android:onClick="onBtnGrpCall_Hangup"
+-                android:text="拒绝/退出" />
+-
+-            <Button
+-                android:id="@+id/bt_grpcall_Join"
+-                android:layout_width="wrap_content"
+-                android:layout_height="wrap_content"
+-                android:onClick="onBtnGrpCall_join"
+-                android:text="加入" />
+         </LinearLayout>
+ 
+         <LinearLayout
+@@ -202,34 +164,6 @@
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content" >
+ 
+-            <Button
+-                android:id="@+id/bt_grpcall_GetMemberList"
+-                android:layout_width="82dp"
+-                android:layout_height="match_parent"
+-                android:onClick="onBtnGrpCall_GMemList"
+-                android:text="获取成员" />
+-
+-            <Button
+-                android:id="@+id/bt_grpcall_InvMemberList"
+-                android:layout_width="82dp"
+-                android:layout_height="match_parent"
+-                android:onClick="onBtnGrpCall_InvitedMemberList"
+-                android:text="邀请成员" />
+-
+-            <Button
+-                android:id="@+id/bt_grpcall_KickMemberList"
+-                android:layout_width="74dp"
+-                android:layout_height="match_parent"
+-                android:onClick="onBtnGrpCall_kickMemberList"
+-                android:text="踢出" />
+-
+-            <Button
+-                android:id="@+id/bt_grpcall_Close"
+-                android:layout_width="52dp"
+-                android:layout_height="match_parent"
+-                android:layout_weight="0.30"
+-                android:onClick="onBtnGrpCall_Close"
+-                android:text="关闭多人会话" />
+         </LinearLayout>
+ 
+         <LinearLayout
+@@ -236,40 +170,6 @@
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content" >
+ 
+-            <Button
+-                android:id="@+id/Button01"
+-                android:layout_width="74dp"
+-                android:layout_height="wrap_content"
+-                android:onClick="onBtnGrpV_MuteFl"
+-                android:text="禁言禁听" />
+-
+-            <Button
+-                android:id="@+id/Button02"
+-                android:layout_width="wrap_content"
+-                android:layout_height="wrap_content"
+-                android:onClick="onBtnGrpV_MuteUnFl"
+-                android:text="禁言不禁听" />
+-
+-            <Button
+-                android:id="@+id/Button03"
+-                android:layout_width="74dp"
+-                android:layout_height="wrap_content"
+-                android:onClick="onBtnGrpV_FlUnMute"
+-                android:text="禁听不禁言" />
+-
+-            <Button
+-                android:id="@+id/Button04"
+-                android:layout_width="wrap_content"
+-                android:layout_height="wrap_content"
+-                android:onClick="onBtnGrpV_UnMuteUnFl"
+-                android:text="解禁言禁听" />
+-
+-        </LinearLayout>
+-
+-        <LinearLayout
+-            android:layout_width="match_parent"
+-            android:layout_height="wrap_content" >
+-
+             <TextView
+                 android:id="@+id/tv_version"
+                 android:layout_width="wrap_content"
+Index: src/com/rtc/sdk/DemoApp.java
+===================================================================
+--- src/com/rtc/sdk/DemoApp.java	(revision 816)
++++ src/com/rtc/sdk/DemoApp.java	(working copy)
+@@ -2,11 +2,7 @@
+ 
+ 
+ import java.text.SimpleDateFormat;
+-import java.util.ArrayList;
+ import java.util.Date;
+-import java.util.List;
+-
+-import org.json.JSONArray;
+ import org.json.JSONException;
+ import org.json.JSONObject;
+ 
+@@ -15,17 +11,14 @@
+ import rtc.sdk.common.SdkSettings;
+ import rtc.sdk.core.RtcRules;
+ import rtc.sdk.iface.ClientListener;
+-import rtc.sdk.iface.GroupMgr;
+ import rtc.sdk.iface.Connection;
+ import rtc.sdk.iface.ConnectionListener;
+ import rtc.sdk.iface.Device;
+ import rtc.sdk.iface.DeviceListener;
+-import rtc.sdk.iface.GroupCallListener;
+ import rtc.sdk.iface.RtcClient;
+ import jni.http.HttpManager;
+ import jni.http.HttpResult;
+ import jni.http.RtcHttpClient;
+-import jni.media.RtcMediaJava;
+ import jni.util.Utils;
+ import android.app.Activity;
+ import android.app.AlertDialog;
+@@ -38,13 +31,9 @@
+ import android.view.KeyEvent;
+ import android.view.SurfaceView;
+ import android.view.View;
+-import android.widget.AdapterView;
+-import android.widget.ArrayAdapter;
+ import android.widget.Button;
+ import android.widget.EditText;
+ import android.widget.LinearLayout;
+-import android.widget.Spinner;
+-import android.widget.AdapterView.OnItemSelectedListener;
+ import android.widget.TextView;
+ 
+ // TODO: Auto-generated Javadoc
+@@ -61,59 +50,16 @@
+     
+     /** The Username. */
+     public  String Username="";
+-
+-    /** The Constant MSG_SERADDR. */
+-    public static final int MSG_SERADDR=10000;
+     
+     /** The Constant MSG_GETTOKEN. */
+     public static final int MSG_GETTOKEN=10001;
+     
+-    /** The Constant MSG_GRP_HANGUP. */
+-    public static final int MSG_GRP_HANGUP = 10002;
+-    
+-    /** The Constant MSG_GRP_BEI_CREATE. */
+-    public static final int MSG_GRP_BEI_CREATE = 10003;
+-    
+-    /** The Constant MSG_GRP_ZHU_CREATE. */
+-    public static final int MSG_GRP_ZHU_CREATE = 10004;
+-    
+-    /** The Constant MSG_GRP_BEI_ACCEPT. */
+-    public static final int MSG_GRP_BEI_ACCEPT = 10005;
+-    
+-    /** The Constant MSG_GRP_OPT_GETMEMBERLIST. */
+-    public static final int MSG_GRP_OPT_GETMEMBERLIST=1006;
+-
+-
+-    /** The btngrpv_hangup. */
+-    private Button btngrp_accept,btngrp_hangup;
+-    
+-    /** The calltype. */
+-    private int calltype = 1;
+-    
+     /** The m clt. */
+     RtcClient mClt;
+     
+-    /** The m_grptype. */
+-    public  int  m_grptype; //当前会议类型
+-    
+-    /** The m_grpname. */
+-    public  String m_grpname; //当前会议组名
+-    
+-    /** The m_grpname. */
+-    private  boolean b_creator; //是否为创建者，供主动加入会议接口使用
+-    
+-    /** The m_grpname. */
+-    private  String m_grpid; //当前会议ID，供主动加入会议接口使用
+-    
+     /** The capabailitytoken. */
+     private String capabailitytoken;
+     
+-    /** The sp_grptype. */
+-    private Spinner sp_grptype;
+-    
+-    /** The adapter_grptype. */
+-    private ArrayAdapter adapter_grptype;
+-    
+     /** The tv_version. */
+     private TextView tv_version;
+ 
+@@ -145,13 +91,11 @@
+     protected void onCreate(Bundle savedInstanceState) {
+         super.onCreate(savedInstanceState);
+         setContentView(R.layout.activity_demoapp);
+-        btngrp_accept = (Button)findViewById(R.id.bt_grpcall_accept);
+-        btngrp_hangup = (Button)findViewById(R.id.bt_grpcall_Hangup);
++        layoutlocal = (LinearLayout) findViewById(R.id.ll_local);
++        layoutremote = (LinearLayout) findViewById(R.id.ll_remote);
++
+         tv_version = (TextView)findViewById(R.id.tv_version);
+-        btngrp_accept.setVisibility(View.INVISIBLE);
+-        btngrp_hangup.setVisibility(View.INVISIBLE);
+         tv_version.setText(RtcConst.sdkVersion+"; VP8; "+APP_ID);//getAppVersionName()
+-        initSpinnerGrpType();
+         updateEditInfo(0xffffffff);
+     }
+ 
+@@ -163,8 +107,6 @@
+     protected void onResume() {
+         // TODO Auto-generated method stub
+         if(layoutremote!=null) {
+-            if(mGroupCall!=null)
+-                mGroupCall.resetVideoViews();
+             if(mCall!=null)
+                 mCall.resetVideoViews();
+         }
+@@ -256,8 +198,8 @@
+      */
+     void initVideoViews() {
+         if (mvLocal!=null) return;
+-        LinearLayout layoutlocal = (LinearLayout) findViewById(R.id.ll_local);
+-        mvLocal = RtcMediaJava.CreateLocalVideo(this);
++        if(mCall != null)
++            mvLocal = (SurfaceView)mCall.createVideoView(true, this, true);
+         mvLocal.setVisibility(View.INVISIBLE);
+         layoutlocal.addView(mvLocal);
+         mvLocal.setKeepScreenOn(true);
+@@ -264,8 +206,8 @@
+         mvLocal.setZOrderMediaOverlay(true);
+         mvLocal.setZOrderOnTop(true);
+ 
+-        layoutremote = (LinearLayout) findViewById(R.id.ll_remote);
+-        mvRemote = RtcMediaJava.CreateRemoteVideo(this,true);
++        if(mCall != null)
++            mvRemote = (SurfaceView)mCall.createVideoView(false, this, true);
+         mvRemote.setVisibility(View.INVISIBLE);
+         mvRemote.setKeepScreenOn(true);
+         mvRemote.setZOrderMediaOverlay(true);
+@@ -338,7 +280,7 @@
+     String[] s_call_type = new String[] {"Audio","Video","Audio+Video","RecvOnly","SendOnly"};
+     
+     /** The m ct. */
+-    int mCT = 3;
++    int mCT = RtcConst.CallType_A_V;
+     
+     /**
+      * On btn call type.
+@@ -371,7 +313,6 @@
+      * @param viw the viw
+      */
+     public void onBtnInit(View viw) {
+-        initVideoViews();
+         mInit = !mInit;
+         Utils.PrintLog(5, LOGTAG, "onBtnInit mInit :"+mInit);
+ 
+@@ -418,9 +359,6 @@
+     /** The m acc. */
+     Device mAcc = null;  //reg
+     
+-    /** The grpmgr. */
+-    GroupMgr grpmgr;
+-    
+     /** The m a listener. */
+     DeviceListener mAListener = new DeviceListener() {
+         @Override
+@@ -428,10 +366,7 @@
+             Utils.PrintLog(5,"DeviceListener","onDeviceStateChanged,result="+result);
+             setStatusText("StateChanged,result="+result);
+             if(result == RtcConst.CallCode_Success) { //注销也存在此处
+-                if(mAcc!=null) {
+-                    grpmgr = mAcc.getGroup();
+-                    grpmgr.setGroupCallListener(mGrpCallListener);
+-                }
++
+             }
+             else if(result == RtcConst.NoNetwork) {
+                 onNoNetWork();
+@@ -468,10 +403,6 @@
+                 mCall.disconnect();
+                 mCall = null;
+             }
+-            if (mGroupCall!=null) {
+-                mGroupCall.disconnect();
+-                mGroupCall = null;
+-            }
+             setStatusText("pls check network");
+         }
+         private void ChangeNetWork() {
+@@ -504,15 +435,22 @@
+         public void onQueryStatus(int status, String paramers) {
+             // TODO Auto-generated method stub
+         }
++        @Override
++        public void onSendIm(int status) {
++            // TODO Auto-generated method stub
++        }
++        @Override
++        public void onReceiveIm(String from,String mime,String content) {
++            // TODO Auto-generated method stub
++        }
+     };
+ 
+     /**
+-     * Opt_get token.
++     * 终端直接从rtc平台获取token，应用产品需要通过自己的服务器来获取，rtc平台接口请参考开发文档<2.5>章节.
+      */
+     private  void  opt_getToken() {
+         RtcConst.UEAPPID_Current = RtcConst.UEAPPID_Self;//账号体系，包括私有、微博、QQ等，必须在获取token之前确定。
+         JSONObject jsonobj = HttpManager.getInstance().CreateTokenJson(0,getEditText(R.id.ed_user),RtcHttpClient.grantedCapabiltyID,"");
+-        RtcHttpClient.InApplicationID=APP_ID;
+         HttpResult  ret = HttpManager.getInstance().getCapabilityToken(jsonobj,APP_ID,APP_KEY);
+         setStatusText("获取token:"+ret.getStatus()+" reason:"+ret.getErrorMsg());
+         Message msg = new Message();
+@@ -573,10 +511,10 @@
+         try {
+             JSONObject jargs = SdkSettings.defaultDeviceSetting();
+             jargs.put(RtcConst.kAccPwd,spwd);
+-            Utils.PrintLog(5, LOGTAG, "user:"+getEditText(R.id.ed_user) +"token:"+capabailitytoken);
++            Utils.PrintLog(5, LOGTAG, "user:"+getEditText(R.id.ed_user) +"token:"+spwd);
+             
+             //账号格式形如“账号体系-号码~应用id~终端类型”，以下主要设置账号内各部分内容，其中账号体系的值要在获取token之前确定，默认为私有账号
+-            jargs.put(RtcConst.kAccAppID,RtcHttpClient.InApplicationID);//应用id
++            jargs.put(RtcConst.kAccAppID,APP_ID);//应用id
+             //jargs.put(RtcConst.kAccName,"逍遥神龙");
+             jargs.put(RtcConst.kAccUser,getEditText(R.id.ed_user)); //号码
+             jargs.put(RtcConst.kAccType,RtcConst.UEType_Current);//终端类型
+@@ -621,6 +559,7 @@
+             mHandler.post(new Runnable() {
+                 @Override
+                 public void run() {
++                    initVideoViews();
+                     mCall.buildVideo(mvRemote);
+                     setVideoSurfaceVisibility(View.VISIBLE);
+                 }
+@@ -650,7 +589,7 @@
+             try {
+                 //;transport=tls
+                 String remoteuri = "";
+-                remoteuri = RtcRules.UserToRemoteUri_new(getEditText(R.id.ed_remoteuri), RtcHttpClient.InApplicationID,RtcConst.UEType_Any);
++                remoteuri = RtcRules.UserToRemoteUri_new(getEditText(R.id.ed_remoteuri), RtcConst.UEType_Any);
+ 
+                 JSONObject jinfo = new JSONObject();
+                 jinfo.put(RtcConst.kCallRemoteUri,remoteuri);
+@@ -750,50 +689,6 @@
+                 case MSG_GETTOKEN:
+                     OnResponse_getToken(msg);
+                     break;
+-                case MSG_GRP_HANGUP:
+-                    setVideoSurfaceVisibility(View.INVISIBLE);
+-                    btngrp_accept.setVisibility(View.INVISIBLE);
+-                    btngrp_hangup.setVisibility(View.INVISIBLE);
+-                    break;
+-                case MSG_GRP_BEI_CREATE:
+-                    Utils.DisplayToast(DemoApp.this, "有会议邀请加入"+m_grpname);
+-                    btngrp_accept.setVisibility(View.VISIBLE);
+-                    btngrp_hangup.setVisibility(View.VISIBLE); //可以选择拒接
+-                    break;
+-                case MSG_GRP_ZHU_CREATE:
+-                    btngrp_accept.setVisibility(View.INVISIBLE);
+-                    btngrp_hangup.setVisibility(View.VISIBLE);
+-                    break;
+-                case MSG_GRP_BEI_ACCEPT:
+-                    btngrp_accept.setVisibility(View.INVISIBLE);
+-                    btngrp_hangup.setVisibility(View.VISIBLE);
+-                    break;
+-                case MSG_GRP_OPT_GETMEMBERLIST: {
+-                    JSONObject jsonrsp = (JSONObject)msg.obj;
+-                    List<TGrpMemberInfo> list = new ArrayList<TGrpMemberInfo>();
+-                    JSONArray jsonArr;
+-                    try {
+-                        jsonArr = jsonrsp.getJSONArray(RtcConst.kGrpMemArray);
+-                        for (int i = 0; i < jsonArr.length(); i++) {
+-                            TGrpMemberInfo grpmemberinfo= new TGrpMemberInfo();
+-                            JSONObject itemObject = jsonArr.getJSONObject(i);
+-                            grpmemberinfo.setUserid(itemObject.getString(RtcConst.kappAccountID)); //请求的对应标识
+-                            grpmemberinfo.setMemberStatus(itemObject.getInt(RtcConst.kGrpMemStatus));
+-                            grpmemberinfo.setStartTime(itemObject.getString("startTime"));
+-                            grpmemberinfo.setDuration(itemObject.getInt("duration"));
+-                            grpmemberinfo.setupAudioState(itemObject.getInt("upAudioState"));
+-                            grpmemberinfo.setupVideoState(itemObject.getInt("upVideoState"));
+-                            grpmemberinfo.setdownAudioState(itemObject.getInt("downAudioState"));
+-                            grpmemberinfo.setdownVideoState(itemObject.getInt("downVideoState"));
+-                            grpmemberinfo.setRole(itemObject.getInt(RtcConst.kGrpRole));
+-                            list.add(grpmemberinfo);
+-                        }
+-                    } catch (JSONException e) {
+-                        // TODO Auto-generated catch block
+-                        e.printStackTrace();
+-                    }
+-                    break;
+-                }
+                 default:
+                     break;
+             }
+@@ -801,589 +696,7 @@
+ 
+     };
+ 
+-    /** The m group call. */
+-    Connection mGroupCall;
+-    
+-    /** The m grp listener. */
+-    ConnectionListener mGrpListener = new ConnectionListener() {
+-        @Override
+-        public void onConnecting() {
+-            setStatusText("mGrpListener onConnecting");
+-            Utils.PrintLog(5, LOGTAG, "group onConnecting()");
+-        }
+-        @Override
+-        public void onConnected() {
+-            setStatusText("mGrpListener onConnected");
+-            Utils.PrintLog(5, LOGTAG, "group onConnected()");
+-        }
+-        @Override
+-        public void onDisconnected(int code) {
+-            setStatusText("ConnectionListener:onDisconnect grp,code="+code);
+-            mGroupCall = null;
+-            Utils.PrintLog(5, LOGTAG, "group onDisConnected()");
+-            Message msg = new Message();
+-            msg.what = MSG_GRP_HANGUP;
+-            UIHandler.sendMessage(msg);
+-        }
+-        @Override
+-        public void onVideo() {
+-            setStatusText("ConnectionListener:onVideo");
+-            mHandler.post(new Runnable() {
+-                @Override
+-                public void run() {
+-                    if(mGroupCall!=null) {
+-                        mGroupCall.buildVideo(mvRemote);
+-                        setVideoSurfaceVisibility(View.VISIBLE);
+-                    }
+-                }
+-            });
+-        }
+-        @Override
+-        public void onNetStatus(int msg, String info) {
+-            // TODO Auto-generated method stub
+-        }
+-    };
+-    
+-    /** The m grp voice listener. */
+-    GroupCallListener mGrpCallListener = new GroupCallListener() {
+-        private void onResponse_grpcreate(String parameters) {
+-            //RestMgr中对应groupVoice_optCreate
+-            try {
+-                if(parameters==null || parameters.equals("")) {
+-                    Utils.PrintLog(5, LOGTAG, "onResponse_grpcreate resopnse strResponse null");
+-                    return;
+-                }
+-                JSONObject jsonrsp = new JSONObject(parameters);
+-                Utils.PrintLog(5, LOGTAG, "onResponse_grpcreate resopnse:"+parameters);
+-                int code = jsonrsp.getInt(RtcConst.kcode);
+-                String reason = jsonrsp.getString(RtcConst.kreason);
+-                Utils.PrintLog(5, LOGTAG, "onResponse_grpcreate code:"+code+" reason:"+reason);
+-                if(code == 0) {
+-                    b_creator = true;
+-                    m_grpid = jsonrsp.getString(RtcConst.kcallId);
+-                    setStatusText("会议创建成功:"+parameters);
+-                    Message msg = new Message();
+-                    msg.what = MSG_GRP_ZHU_CREATE;
+-                    UIHandler.sendMessage(msg);
+-                }
+-                else {
+-                    setStatusText("会议创建失败:"+code+" reason:"+reason);
+-                }
+-            } catch (JSONException e) {
+-                // TODO Auto-generated catch block
+-                setStatusText("会议创建失败 JSONException:"+e.getMessage());
+-                e.printStackTrace();
+-            }
+-        }
+-        private void onResponse_grpgetMemberLis(String parameters) {
+-            try {
+-                if(parameters == null || parameters.equals("")) {
+-                    Utils.PrintLog(5, LOGTAG, "onResponse_grpgetMemberLis fail result: null");
+-                    return;
+-                }
+-                JSONObject jsonrsp = new JSONObject(parameters);
+-                String code = jsonrsp.getString(RtcConst.kcode);
+-                String reason = jsonrsp.getString(RtcConst.kreason);
+-                Utils.PrintLog(5, LOGTAG, "onResponse_grpgetMemberLis code:"+code+" reason:"+reason);
+-                if(code.equals("0")) {
+-                    setStatusText("获取成员列表成功:"+parameters);
+-                    Message msg = new Message();
+-                    msg.what = MSG_GRP_OPT_GETMEMBERLIST;
+-                    msg.obj = jsonrsp;
+-                    UIHandler.sendMessage(msg);
+-                }
+-                else {
+-                    setStatusText("获取成员列表失败:"+code+" reason:"+reason);
+-                }
+-            } catch (JSONException e) {
+-                // TODO Auto-generated catch block
+-                setStatusText("获取成员列表失败 JSONException:"+e.getMessage());
+-                e.printStackTrace();
+-            }
+-
+-        }
+-        private void onResponse_grpInvitedMemberList(String parameters) {
+-            try {
+-                Utils.PrintLog(5, LOGTAG, "onResponse_grpInvitedMemberList:"+parameters);
+-                if(parameters == null || parameters.equals(""))
+-                    return;
+-                JSONObject jsonrsp = new JSONObject(parameters);
+-                if(jsonrsp.isNull("code")==false) {
+-                    String code = jsonrsp.getString(RtcConst.kcode);
+-                    String reason = jsonrsp.getString(RtcConst.kreason);
+-                    Utils.PrintLog(5, LOGTAG, "onResponse_grpInvitedMemberList code:"+code+" reason:"+reason);
+-                    if(code.equals("0")) {
+-                        setStatusText("邀请成员参与群组会话成功:"+parameters);
+-                    }
+-                    else {
+-                        setStatusText("邀请成员参与群组会话失败:"+code+" reason:"+reason);
+-                    }
+-                }
+-            } catch (JSONException e) {
+-                // TODO Auto-generated catch block
+-                setStatusText("邀请成员参与群组会话失败 JSONException:"+e.getMessage());
+-                e.printStackTrace();
+-            }
+-        }
+-
+-        private void onResponse_grpkickedMemberList(String parameters) {
+-            try {
+-                if(parameters == null || parameters.equals(""))
+-                    return;
+-                JSONObject jsonrsp = new JSONObject(parameters);
+-                if(jsonrsp.isNull("code")==false) {
+-                    String code = jsonrsp.getString(RtcConst.kcode);
+-                    String reason = jsonrsp.getString(RtcConst.kreason);
+-                    Utils.PrintLog(5, LOGTAG, "onResponse_grpkickedMemberList code:"+code+" reason:"+reason);
+-                    if(code.equals("0") || code.equals("200")) {
+-                        setStatusText("踢出成员成功:"+parameters);
+-                    }
+-                    else {
+-                        setStatusText("踢出成员失败:"+code+" reason:"+reason);
+-                    }
+-                }
+-            } catch (JSONException e) {
+-                // TODO Auto-generated catch block
+-                setStatusText("踢出成员失败 JSONException:"+e.getMessage());
+-                e.printStackTrace();
+-            }
+-        }
+-        private void onResponse_grpClose(String parameters) {
+-            try {
+-                if(parameters == null || parameters.equals(""))
+-                    return;
+-                JSONObject jsonrsp = new JSONObject(parameters);
+-                if(jsonrsp.isNull("code")==false) {
+-                    String code = jsonrsp.getString(RtcConst.kcode);
+-                    String reason = jsonrsp.getString(RtcConst.kreason);
+-                    Utils.PrintLog(5, LOGTAG, "onResponse_grpClose code:"+code+" reason:"+reason);
+-                    if(code.equals("0") || code.equals("200")) {
+-                        setStatusText("关闭群组成功:"+parameters);
+-                    }
+-                    else {
+-                        setStatusText("关闭群组失败:"+code+" reason:"+reason);
+-                    }
+-                }
+-            } catch (JSONException e) {
+-                // TODO Auto-generated catch block
+-                setStatusText("关闭群组失败 JSONException:"+e.getMessage());
+-                e.printStackTrace();
+-            }
+-        }
+-        private void onResponse_grpStreamManagement(String parameters) {
+-            try {
+-                if(parameters == null || parameters.equals(""))
+-                    return;
+-                JSONObject jsonrsp = new JSONObject(parameters);
+-                if(jsonrsp.isNull("code")==false) {
+-                    String code = jsonrsp.getString(RtcConst.kcode);
+-                    String reason = jsonrsp.getString(RtcConst.kreason);
+-                    Utils.PrintLog(5, LOGTAG, "onResponse_grpStreamManagement code:"+code+" reason:"+reason);
+-                    if(code.equals("0")) {
+-                        setStatusText("媒体流控制成功:"+parameters);
+-                    }
+-                    else {
+-                        setStatusText("媒体流控制失败:"+code+" reason:"+reason);
+-                    }
+-                }
+-            } catch (JSONException e) {
+-                // TODO Auto-generated catch block
+-                setStatusText("媒体流控制失败 JSONException:"+e.getMessage());
+-                e.printStackTrace();
+-            }
+-        }
+-        private void onResponse_grpJoin(String parameters) {
+-            try {
+-                Utils.PrintLog(5, LOGTAG, "onResponse_grpJoin:"+parameters);
+-                if(parameters == null || parameters.equals(""))
+-                    return;
+-                JSONObject jsonrsp = new JSONObject(parameters);
+-                if(jsonrsp.isNull("code")==false) {
+-                    String code = jsonrsp.getString(RtcConst.kcode);
+-                    String reason = jsonrsp.getString(RtcConst.kreason);
+-                    Utils.PrintLog(5, LOGTAG, "onResponse_grpJoin code:"+code+" reason:"+reason);
+-                    if(code.equals("0")) {
+-                        setStatusText("主动加入群组会话成功:"+parameters);
+-                    }
+-                    else {
+-                        setStatusText("主动加入群组会话失败:"+code+" reason:"+reason);
+-                    }
+-                }
+-            } catch (JSONException e) {
+-                // TODO Auto-generated catch block
+-                setStatusText("主动加入群组会话失败 JSONException:"+e.getMessage());
+-                e.printStackTrace();
+-            }
+-        }
+-
+-        @Override //用于处理会议结果返回的提示 
+-        public void onResponse(int action, String parameters) {
+-            // TODO Auto-generated method stub
+-            //parameters 为请求和返回的json
+-            Utils.PrintLog(5, "DemoApp GroupCallListener", "onResponse action["+action +"]  parameters:"+parameters);
+-            switch(action) {
+-                case RtcConst.groupcall_opt_create:
+-                    onResponse_grpcreate(parameters);
+-                    break;
+-                case RtcConst.groupcall_opt_getmemberlist:
+-                    onResponse_grpgetMemberLis(parameters);
+-                    break;
+-                case RtcConst.groupcall_opt_invitedmemberlist:
+-                    onResponse_grpInvitedMemberList(parameters);
+-                    break;
+-                case RtcConst.groupcall_opt_kickedmemberlist:
+-                    onResponse_grpkickedMemberList(parameters);
+-                    break;
+-                case RtcConst.groupcall_opt_close:
+-                    onResponse_grpClose(parameters);
+-                    break;
+-                case RtcConst.groupcall_opt_strm:
+-                    onResponse_grpStreamManagement(parameters);
+-                    break;
+-                case RtcConst.groupcall_opt_join:
+-                    onResponse_grpJoin(parameters);
+-                    break;
+-            }
+-            //
+-        }
+-
+-        @Override //
+-        public void onCreate(Connection call) {
+-            // TODO Auto-generated method stub
+-            mGroupCall = call;
+-            mGroupCall.setIncomingListener(mGrpListener);
+-            Utils.PrintLog(5, LOGTAG, "GroupCallListener onCreate info:"+call.info());
+-            try {
+-                JSONObject json = new JSONObject(call.info());
+-                b_creator = json.getBoolean(RtcConst.kGrpInviter);
+-                int grptype = json.getInt(RtcConst.kGrpType);
+-                if(json.has(RtcConst.kGrpname))
+-                    m_grpname = json.getString(RtcConst.kGrpname);
+-                calltype = json.getInt(RtcConst.kCallType);
+-                m_grptype = calltype;
+-                m_grpid = json.getString(RtcConst.kGrpID);
+-                Utils.PrintLog(5, LOGTAG, "GroupCallListener onCreate m_grptype:"+m_grptype+" grptype:"+grptype);
+-                if(b_creator == false) {//非创建者接听选择是否接听
+-                    Message msg = new Message();
+-                    msg.what = MSG_GRP_BEI_CREATE;
+-                    UIHandler.sendMessage(msg);
+-                    setStatusText("有会议邀请,类型:"+RtcConst.getGrpType(grptype));
+-
+-                    Utils.PrintLog(5,LOGTAG, "有会议邀请"+RtcConst.getGrpType(grptype)+"grpname:"+m_grpname);
+-                    //                    mGroupCall.accept(calltype);
+-                    Utils.PrintLog(5, LOGTAG,"DemoApp GroupCallListener accept"+" calltype:" +calltype);
+-                }
+-
+-            } catch (JSONException e) {
+-                // TODO Auto-generated catch block
+-                e.printStackTrace();
+-            }
+-        }
+-
+-
+-        @Override
+-        public void onNotify(String parameters) {
+-            // TODO Auto-generated method stub
+-            Utils.PrintLog(5, LOGTAG, "GroupCallListener onNotify");
+-            try {
+-        	JSONArray jsonarr = new JSONArray(parameters);
+-                setStatusText("成员变化:"+jsonarr);
+-            } catch (JSONException e) {
+-                // TODO Auto-generated catch block
+-                e.printStackTrace();
+-            }
+-        }
+-    };
+-
+-
+     /**
+-     * On btn grp call_create.
+-     *
+-     * @param view the view
+-     */
+-    public void onBtnGrpCall_create(View view) {
+-        Utils.PrintLog(5, LOGTAG, "onBtnGrpCall_create 会议类型："+grptype);
+-        if(mAcc == null) {
+-            Utils.PrintLog(5, LOGTAG, "onBtnGrpCall_create  mAcc == null");
+-            return;
+-        }
+-        grpmgr = mAcc.getGroup();
+-        grpmgr.setGroupCallListener(mGrpCallListener);
+-        //rest;
+-        JSONObject jsonObj = new JSONObject();
+-        try {
+-            jsonObj.put(RtcConst.kgvctype, grptype);
+-            jsonObj.put(RtcConst.kgvcname, "grp组名");
+-            jsonObj.put(RtcConst.kgvcpassword,"空的"); //opt
+-            jsonObj.put(RtcConst.kgvcinvitedList, getEditText(R.id.ed_remoteuri));
+-            Utils.PrintLog(5, LOGTAG, "createGroupCallJson:"+jsonObj.toString());
+-
+-        } catch (JSONException e) {
+-            // TODO Auto-generated catch block
+-            e.printStackTrace();
+-        }
+-        if(grpmgr.groupCall(RtcConst.groupcall_opt_create,jsonObj.toString()) == -1)
+-            setStatusText("重复创建！");
+-    }
+-    
+-    /**
+-     * On btn grp voice_ accept.
+-     *
+-     * @param view the view
+-     */
+-    public void onBtnGrpCall_Accept(View view) {
+-        setStatusText("接受会议邀请");
+-        Utils.PrintLog(5, LOGTAG, "onBtnGrpCall_Accept:会议接听成功");
+-        mGroupCall.accept(calltype);
+-        Message msg = new Message();
+-        msg.what = MSG_GRP_BEI_ACCEPT;
+-        UIHandler.sendMessage(msg);
+-    }
+-    
+-    /**
+-     * On btn grp v_ hangup.
+-     *
+-     * @param view the view
+-     */
+-    public void onBtnGrpCall_Hangup(View view) {
+-        Utils.PrintLog(5, LOGTAG, "onBtnGrpCall_Hangup");
+-        if(mGroupCall!=null) {
+-            mGroupCall.disconnect();
+-            mGroupCall = null;
+-            setStatusText("退出会议");
+-        }
+-        Utils.PrintLog(5, LOGTAG, "onBtnGrpCall_Hangup 退出会议");
+-        Message msg = new Message();
+-        msg.what = MSG_GRP_HANGUP;
+-        UIHandler.sendMessage(msg);
+-    }
+-    //获取成员列表
+-    /**
+-     * On btn grp v_ g mem list.
+-     *
+-     * @param view the view
+-     */
+-    public void onBtnGrpCall_GMemList(View view) {
+-        if(mAcc == null)
+-            return;
+-        Utils.PrintLog(5, LOGTAG, "onBtnGrpCall_GMemList");
+-        GroupMgr grpmgr = mAcc.getGroup();
+-        if(grpmgr==null)
+-            return;
+-        if(grpmgr.groupCall(RtcConst.groupcall_opt_getmemberlist, null) == -1)
+-            setStatusText("没有会议，操作无效");
+-    }
+-    //邀请成员列表加入
+-    /**
+-     * On btn grp v_ invited member list.
+-     *
+-     * @param view the view
+-     */
+-    public void onBtnGrpCall_InvitedMemberList(View view) {
+-        Utils.PrintLog(5, LOGTAG, "onBtnGrpCall_InvitedMemberList");
+-        if(mAcc == null)
+-            return;
+-        GroupMgr grpmgr = mAcc.getGroup();
+-        if(grpmgr==null)
+-            return;
+-        String remoteuri = getEditText(R.id.ed_remoteuri);
+-        if(grpmgr.groupCall(RtcConst.groupcall_opt_invitedmemberlist,remoteuri) == -1) //多人列表取被叫 逗号 间隔 
+-            setStatusText("没有会议，操作无效");
+-    }
+-    
+-    /**
+-     * On btn grp v_kick member list.
+-     *
+-     * @param view the view
+-     */
+-    public void onBtnGrpCall_kickMemberList(View view) {
+-        Utils.PrintLog(5, LOGTAG, "onBtnGrpV_kickMemberList:");
+-        if(mAcc == null)
+-            return;
+-        GroupMgr grpmgr = mAcc.getGroup();
+-        if(grpmgr==null)
+-            return;
+-        String remoteuri = getEditText(R.id.ed_remoteuri);
+-        //  remoteuri =  remoteuri.replace("@", RtcConst.char_key);
+-        if(grpmgr.groupCall(RtcConst.groupcall_opt_kickedmemberlist,remoteuri) == -1) //多人列表取被叫 逗号 间隔 
+-            setStatusText("没有会议，操作无效");
+-    }
+-
+-    //关闭群组
+-    /**
+-     * On btn grp v_ close.
+-     *
+-     * @param view the view
+-     */
+-    public void onBtnGrpCall_Close(View view) {
+-        Utils.PrintLog(5, LOGTAG, "onBtnGrpV_CloseGrpv:");
+-        if(mAcc == null)
+-            return;
+-        GroupMgr grpmgr = mAcc.getGroup();
+-        if(grpmgr==null)
+-            return;
+-        if(grpmgr.groupCall(RtcConst.groupcall_opt_close,null) == -1) //多人列表取被叫 逗号 间隔 
+-            setStatusText("没有会议，操作无效");
+-    }
+-
+-    //禁止群组成员发言/解除群组成员禁言(给麦/收回麦克)
+-    /**
+-     * On mic management.
+-     *
+-     * @param type the type
+-     */
+-    private void OnStreamManagement(int type) {
+-        Utils.PrintLog(5, LOGTAG, "OnStreamManagement:");
+-        if(mAcc == null)
+-            return;
+-        GroupMgr grpmgr = mAcc.getGroup();
+-        if(grpmgr==null)
+-            return;
+-        String[] memList = getEditText(R.id.ed_remoteuri).split(",");
+-
+-        try {
+-            JSONArray jsonArr = new JSONArray();
+-            for(int i=0; i<memList.length; i++) {
+-                JSONObject jsonObj1 = new JSONObject();
+-                jsonObj1.put(RtcConst.kGrpMember, memList[i]);
+-                switch(type) {
+-                    case 0:
+-                        jsonObj1.put(RtcConst.kGrpUpOpType, 0+2*(mCT-1));
+-                        jsonObj1.put(RtcConst.kGrpDownOpType, 0+2*(mCT-1));
+-                        break;
+-                    case 1:
+-                        jsonObj1.put(RtcConst.kGrpUpOpType, 0+2*(mCT-1));
+-                        jsonObj1.put(RtcConst.kGrpDownOpType, 1+2*(mCT-1));
+-                        break;
+-                    case 2:
+-                        jsonObj1.put(RtcConst.kGrpUpOpType, 1+2*(mCT-1));
+-                        jsonObj1.put(RtcConst.kGrpDownOpType, 0+2*(mCT-1));
+-                        break;
+-                    case 3:
+-                        jsonObj1.put(RtcConst.kGrpUpOpType, 1+2*(mCT-1));
+-                        jsonObj1.put(RtcConst.kGrpDownOpType, 1+2*(mCT-1));
+-                        break;
+-                }
+-
+-                jsonArr.put(i, jsonObj1);
+-            }
+-            if(grpmgr.groupCall(RtcConst.groupcall_opt_strm,jsonArr.toString()) == -1)
+-        	setStatusText("没有会议，操作无效");
+-        } catch (JSONException e) {
+-            // TODO Auto-generated catch block
+-            e.printStackTrace();
+-        }
+-    }
+-
+-    /**
+-     * On btn grp v_ mute.
+-     *
+-     * @param view the view
+-     */
+-    public void onBtnGrpV_MuteFl(View view) {
+-        Utils.PrintLog(5, LOGTAG, "onBtnGrpV_MuteFl:");
+-        OnStreamManagement(0);
+-    }
+-    
+-    /**
+-     * On btn grp v_ un mute.
+-     *
+-     * @param view the view
+-     */
+-    public void onBtnGrpV_MuteUnFl(View view) {
+-        Utils.PrintLog(5, LOGTAG, "onBtnGrpV_MuteUnFl:");
+-        OnStreamManagement(1);
+-    }
+-    
+-    public void onBtnGrpV_FlUnMute(View view) {
+-        Utils.PrintLog(5, LOGTAG, "onBtnGrpV_FlUnMute:");
+-        OnStreamManagement(2);
+-    }
+-    
+-    /**
+-     * @param view the view
+-     */
+-    public void onBtnGrpV_UnMuteUnFl(View view) {
+-        Utils.PrintLog(5, LOGTAG, "onBtnGrpV_UnMuteUnFl:");
+-        OnStreamManagement(3);
+-    }
+-    
+-    /**
+-     * On btn grp call_join.
+-     *
+-     * @param view the view
+-     */
+-    public void onBtnGrpCall_join(View view) {
+-        Utils.PrintLog(5, LOGTAG, "onBtnGrpCall_join 会议类型："+grptype);
+-        if(mAcc == null) {
+-            Utils.PrintLog(5, LOGTAG, "onBtnGrpCall_join  mAcc == null");
+-            return;
+-        }
+-        grpmgr = mAcc.getGroup();
+-        grpmgr.setGroupCallListener(mGrpCallListener);
+-
+-        JSONObject jsonObj = new JSONObject();
+-        try {
+-            jsonObj.put(RtcConst.kGrpID, m_grpid); //yes
+-            jsonObj.put(RtcConst.kgvccreator, b_creator); //yes
+-            jsonObj.put(RtcConst.kgvcpassword, "空的"); //opt
+-            Utils.PrintLog(5, LOGTAG, "createGroupJoinJson:"+jsonObj.toString());
+-
+-        } catch (JSONException e) {
+-            // TODO Auto-generated catch block
+-            e.printStackTrace();
+-        }
+-        if(grpmgr.groupCall(RtcConst.groupcall_opt_join,jsonObj.toString()) == -1)
+-            setStatusText("重复加入！");
+-    }
+-    
+-    private int grptype;
+-    
+-    /**
+-     * Inits the spinner grp type.
+-     */
+-    private void initSpinnerGrpType() {
+-        sp_grptype = (Spinner)findViewById(R.id.spinner_grptype);
+-        //将可选内容与ArrayAdapter连接起来
+-        adapter_grptype = ArrayAdapter.createFromResource(this, R.array.grptype, android.R.layout.simple_spinner_item);
+-        //设置下拉列表的风格
+-        adapter_grptype.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+-        //设置下拉列表的风格
+-        //将adapter2 添加到spinner中
+-        sp_grptype.setAdapter(adapter_grptype);
+-        //添加事件Spinner事件监听
+-        sp_grptype.setOnItemSelectedListener(new SpinnerXMLSelectedListener_vformat());
+-        grptype = 0;
+-        //设置默认值
+-        sp_grptype.setVisibility(View.VISIBLE);
+-    }
+-    //使用XML形式操作
+-    /**
+-     * The Class SpinnerXMLSelectedListener_vformat.
+-     */
+-    class SpinnerXMLSelectedListener_vformat implements OnItemSelectedListener{
+-
+-        /* (non-Javadoc)
+-         * @see android.widget.AdapterView.OnItemSelectedListener#onItemSelected(android.widget.AdapterView, android.view.View, int, long)
+-         */
+-        public void onItemSelected(AdapterView<?> arg0, View arg1, int arg2,
+-                long arg3) {
+-            grptype = arg2;
+-            if(arg2 == 3) grptype = 9;
+-            else if(arg2>3 && arg2<7) grptype = arg2+16;
+-            else if(arg2 == 7) grptype = 29;
+-            Utils.PrintLog(5, LOGTAG,"选择会议类型:"+adapter_grptype.getItem(arg2)+"  grpselect:"+grptype);
+-        }
+-        
+-        /* (non-Javadoc)
+-         * @see android.widget.AdapterView.OnItemSelectedListener#onNothingSelected(android.widget.AdapterView)
+-         */
+-        public void onNothingSelected(AdapterView<?> arg0) {
+-
+-        }
+-    }
+-
+-    /**
+      * Gets the app version name.
+      *
+      * @return the app version name
